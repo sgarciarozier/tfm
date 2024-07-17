@@ -1,0 +1,25 @@
+#descarga de datos con srta tools
+#acession files SRR22930403 male control 
+
+conda activate sratools
+prefecht SRR22930403
+fastq-dump --split-files --gzip SRR22930403.sra
+
+conda deactivate
+
+conda activate tfm
+
+fastqc SRR22930403_*
+
+conda deactivate
+conda activate 05MBIF
+curl -fsSL https://github.com/FelixKrueger/TrimGalore/archive/0.6.10.tar.gz -o trim_galore.tar.gz
+tar xvzf trim_galore.tar.gz
+TrimGalore-0.6.10/trim_galore  --paired SRR22930403_1.fastq.gz SRR22930403_2.fastq.gz
+fastqc SRR22930403_*_val_*.fq.gz
+
+_____
+wget ftp://ftp.ensembl.org/pub/release-104/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
+mv Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz genome.fa.gz
+hisat2-build genome.fa genome
+
