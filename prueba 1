@@ -23,3 +23,21 @@ wget ftp://ftp.ensembl.org/pub/release-104/fasta/homo_sapiens/dna/Homo_sapiens.G
 mv Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz genome.fa.gz
 hisat2-build genome.fa genome
 
+
+wget https://genome-idx.s3.amazonaws.com/hisat/grch38_genome.tar.gz
+tar -xzvf grch38_genome.tar.gz
+hisat2 -p 8 -k 1 -x /home/sgarciar/tfm/data/genome/grch38/genome \
+>-1 /home/sgarciar/tfm/data/0.raw/SRR22930403/SRR22930403_1_val_1.fq.gz \
+> -2 /home/sgarciar/tfm/data/0.raw/SRR22930403/SRR22930403_2_val_2.fq.gz \
+> -S /home/sgarciar/tfm/data/0.raw/SRR22930403/SRR22930403_hisat2.sam
+
+##ha dado 25GB sam. 
+
+samtools view -Sbh /home/sgarciar/tfm/data/0.raw/SRR22930403/SRR22930403_hisat2.sam > /home/sgarciar/tfm/data/0.raw/SRR22930403/SRR22930403_hisat2.bam
+samtools sort /home/sgarciar/tfm/data/0.raw/SRR22930403/SRR22930403_hisat2.bam -o /home/sgarciar/tfm/data/0.raw/SRR22930403/SRR22930403.sorted.bam
+samtools index /home/sgarciar/tfm/data/0.raw/SRR22930403/SRR22930403.sorted.bam
+
+wget https://ftp.ensembl.org/pub/release-80/gtf/homo_sapiens/Homo_sapiens.GRCh38.80.gtf.gz
+gunzip Homo_sapiens.GRCh38.80.gtf.gz
+mv Homo_sapiens.GRCh38.80.gtf genome.gtf
+htseq-count -t exon -i gene_id --stranded=no -f bam -r pos /home/sgarciar/tfm/data/0.raw/SRR22930403/SRR22930403.sorted.bam /home/sgarciar/tfm/data/annotation/genome.gtf > /home/sgarciar/tfm/data/0.raw/SRR22930403/SRR22930403_counts.tsv
