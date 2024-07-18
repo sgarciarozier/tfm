@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# Check if an accession code is provided
+if [ -z "$1" ]; then
+    echo "Usage: $0 <accession_code>"
+    exit 1
+fi
+
+# Check if a directory for reports is provided
+if [ -z "$2" ]; then
+    echo "Usage: $0 <accession_code> <report_directory>"
+    exit 1
+fi
+
+accession_code=$1
+report_directory=$2
+filename1="${accession_code}_1.fastq.gz"
+filename2="${accession_code}_2.fastq.gz"
+
+# Check if FastQC is installed
+if ! command -v fastqc &> /dev/null; then
+    echo "FastQC could not be found. Please install FastQC to use this script."
+    exit 1
+fi
+
+# Run FastQC on both files if they exist
+if [[ -f "$filename1" && -f "$filename2" ]]; then
+    fastqc "$filename1" "$filename2"
+elif [[ -f "$filename1" ]]; then
+    fastqc "$filename1"
+elif [[ -f "$filename2" ]]; then
+    fastqc "$filename2"
+else
+    echo "No files found matching ${filename1} or ${filename2}."
+    exit 1
+fi
+
+# Check if FastQC ran successfully
+if [ $? -eq 0 ]; then
+    echo "FastQC analysis complete for $filename1 and $filename2."
+
+    # Move reports to the specified directory
+    mkdir -p "$report_directory"
+    mv *fastqc.html "$report_directory"
+
+    # Remove .zip files to save space
+    rm *fastqc.zip
+
+    echo "Reports have been moved to $report_directory and .zip files have been deleted."
+else
+    echo "FastQC analysis failed for $filename1 and $filename2."
+fi
